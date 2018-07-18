@@ -63,6 +63,10 @@ public abstract class GitHelper {
         }
     }
 
+    public Map<String, String> getBranchLatestRevisions() {
+        throw new UnsupportedOperationException();
+    }
+
     public abstract void cloneRepository();
 
     public abstract void checkoutRemoteBranchToLocal();

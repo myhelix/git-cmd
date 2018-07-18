@@ -22,6 +22,8 @@ public class GitCmdHelper extends GitHelper {
     private static final Pattern GIT_SUBMODULE_STATUS_PATTERN = Pattern.compile("^.[0-9a-fA-F]{40} (.+?)( \\(.+\\))?$");
     private static final Pattern GIT_SUBMODULE_URL_PATTERN = Pattern.compile("^submodule\\.(.+)\\.url (.+)$");
     private static final Pattern GIT_DIFF_TREE_PATTERN = Pattern.compile("^(.{1,2})\\s+(.+)$");
+    private static final String BRANCH_REF_PREFIX = "refs/heads/";
+    private static final Integer RevisionAndBranch = 2;
 
     public GitCmdHelper(GitConfig gitConfig, File workingDir) {
         this(gitConfig, workingDir, new ProcessOutputStreamConsumer(new InMemoryConsumer()), new ProcessOutputStreamConsumer(new InMemoryConsumer()));
@@ -35,6 +37,23 @@ public class GitCmdHelper extends GitHelper {
     public String version() {
         CommandLine gitLsRemote = Console.createCommand("--version");
         return runAndGetOutput(gitLsRemote).stdOut().get(0);
+    }
+
+    @Override
+    public Map<String, String> getBranchLatestRevisions() {
+        Map<String, String> branchRevisions = new HashMap<>();
+        CommandLine gitCmd = Console.createCommand("ls-remote");
+        List<String> outputLines = runAndGetOutput(gitCmd).stdOut();
+        for (String line : outputLines) {
+            String[] parts = line.split("\\s+");
+            if (parts.length != RevisionAndBranch) continue;
+            String revision = parts[0];
+            String branch = parts[1];
+            if (!branch.contains(BRANCH_REF_PREFIX)) continue;
+            branch = branch.split(BRANCH_REF_PREFIX)[1];
+            branchRevisions.put(branch, revision);
+        }
+        return branchRevisions;
     }
 
     @Override
